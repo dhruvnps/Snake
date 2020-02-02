@@ -2,10 +2,11 @@ import pygame
 import neat
 import os
 import random
+import math
 
-WIDTH, HEIGHT = 20, 20
-SCALE = 32
-SPEED = 10
+WIDTH, HEIGHT = 40, 40
+SCALE = 17
+SPEED = math.inf
 MAX_TIME = 200
 
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
@@ -89,7 +90,7 @@ def main(genomes, config):
     clock = pygame.time.Clock()
 
     while True:
-        #clock.tick(SPEED)
+        clock.tick(SPEED)
         win.fill(BLACK)
 
         for i in pygame.event.get():
@@ -98,7 +99,12 @@ def main(genomes, config):
                 quit()
 
         if len(snakes) > 0:
+            best_snake = sorted(snakes, key=lambda x: x.score)[0]
+            #best_snake.draw(win)
+
             for (x, snake) in enumerate(snakes):
+                snake.draw(win)
+
                 if dead(snake.pos) or snake.timer > MAX_TIME:
                     snakes.pop(x)
                     active_genomes.pop(x)
@@ -107,7 +113,6 @@ def main(genomes, config):
             break
 
         for (x, snake) in enumerate(snakes):
-            snake.draw(win)
             snake.move()
 
             active_genomes[x].fitness = snake.score
@@ -126,24 +131,24 @@ def main(genomes, config):
 
             apple_view = []
             if snake.pos[0][0] == snake.apple.x and snake.pos[0][1] > snake.apple.y:
-                apple_view.append(1)
+                apple_view.append(0)
             if snake.pos[0][1] == snake.apple.y and snake.pos[0][0] < snake.apple.y:
-                apple_view.append(2)
+                apple_view.append(1)
             if snake.pos[0][0] == snake.apple.x and snake.pos[0][1] < snake.apple.x:
-                apple_view.append(3)
+                apple_view.append(2)
             if snake.pos[0][1] == snake.apple.y and snake.pos[0][0] > snake.apple.x:
-                apple_view.append(4)
+                apple_view.append(3)
             apple_view = [(i in apple_view) for i in range(4)]
 
-            if direction == UP:
+            if snake.direction == UP:
                 inputs.extend(apple_view)
-            if direction == RIGHT:
+            if snake.direction == RIGHT:
                 inputs.extend(apple_view[1:] + apple_view[:1])
-            if direction == DOWN:
+            if snake.direction == DOWN:
                 inputs.extend(apple_view[2:] + apple_view[:2])
-            if direction == LEFT:
+            if snake.direction == LEFT:
                 inputs.extend(apple_view[3:] + apple_view[:3])
-                
+
             outputs = active_nets[x].activate(inputs)
             snake.direction = (snake.direction + (outputs.index(max(outputs)) - 1)) % 4
 
