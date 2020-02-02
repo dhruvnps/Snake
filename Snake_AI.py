@@ -99,9 +99,7 @@ def main(genomes, config):
                 quit()
 
         if len(snakes) > 0:
-            best_snake = sorted(snakes, key=lambda x: x.score)[0]
-            #best_snake.draw(win)
-
+            #best_snake = sorted(snakes, key=lambda x: x.score)[0]
             for (x, snake) in enumerate(snakes):
                 snake.draw(win)
 
@@ -160,10 +158,8 @@ def run(config_file):
                                 neat.DefaultSpeciesSet, neat.DefaultStagnation, config_file)
 
     p = neat.Population(config)
-
     p.add_reporter(neat.StdOutReporter(True))
     p.add_reporter(neat.StatisticsReporter())
-
     winner = p.run(main, 50)
 
     print('\nBest genome:\n{!s}'.format(winner))
