@@ -5,7 +5,7 @@ import random
 
 WIDTH, HEIGHT = 15, 15
 SCALE = 42
-SPEED = 5
+SPEED = 10
 
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
 
@@ -19,36 +19,22 @@ class Snake:
     def __init__(self):
         self.score = 0
         self.apple = Apple()
-        self.position = [(int(WIDTH / 2) - i, int(HEIGHT / 2)) for i in range(3)]
+        self.pos = [(int(WIDTH / 2) - i, int(HEIGHT / 2)) for i in range(3)]
         self.direction = RIGHT
 
     def move(self):
-        if self.direction == UP:
-            self.position.insert(0, (self.position[0][0], self.position[0][1] - 1))
-        if self.direction == RIGHT:
-            self.position.insert(0, (self.position[0][0] + 1, self.position[0][1]))
-        if self.direction == DOWN:
-            self.position.insert(0, (self.position[0][0], self.position[0][1] + 1))
-        if self.direction == LEFT:
-            self.position.insert(0, (self.position[0][0] - 1, self.position[0][1]))
+        self.pos.insert(0, (next_unit(self.pos, self.direction)))
 
         if self.apple.collide(self):
             while self.apple.collide(self):
                 self.apple = Apple()
             self.score += 1
         else:
-            self.position.pop()
-
-    def collide(self):
-        if not(0 <= self.position[0][0] < WIDTH and 0 <= self.position[0][1] < HEIGHT):
-            return True
-        # checks if snake has overlapped onto itself
-        if sorted(list(set(self.position))) != sorted(self.position):
-            return True
+            self.pos.pop()
 
     def draw(self, win):
         self.apple.draw(win)
-        for unit in self.position:
+        for unit in self.pos:
             pygame.draw.rect(win, GREEN, (unit[0] * SCALE, unit[1] * SCALE, SCALE, SCALE))
 
 
@@ -58,11 +44,30 @@ class Apple:
         self.y = random.randint(0, HEIGHT - 1)
 
     def collide(self, snake):
-        if self.x == snake.position[0][0] and self.y == snake.position[0][1]:
+        if self.x == snake.pos[0][0] and self.y == snake.pos[0][1]:
             return True
 
     def draw(self, win):
         pygame.draw.rect(win, RED, (self.x * SCALE, self.y * SCALE, SCALE, SCALE))
+
+
+def next_unit(pos, direction):
+    if direction == UP:
+        return pos[0][0], pos[0][1] - 1
+    if direction == RIGHT:
+        return pos[0][0] + 1, pos[0][1]
+    if direction == DOWN:
+        return pos[0][0], pos[0][1] + 1
+    if direction == LEFT:
+        return pos[0][0] - 1, pos[0][1]
+
+
+def dead(pos):
+    if not(0 <= pos[0][0] < WIDTH and 0 <= pos[0][1] < HEIGHT):
+        return True
+    # checks if snake has overlapped onto itself
+    if sorted(list(set(pos))) != sorted(pos):
+        return True
 
 
 def main(genomes, config):
@@ -90,9 +95,11 @@ def main(genomes, config):
                 quit()
 
         if len(snakes) > 0:
-            for snake in snakes:
-                if snake.collide():
-                    snakes.remove(snake)
+            for (x, snake) in enumerate(snakes):
+                if dead(snake.pos):
+                    snakes.pop(x)
+                    active_genomes.pop(x)
+                    active_nets.pop(x)
         else:
             break
 
@@ -100,10 +107,21 @@ def main(genomes, config):
             snake.draw(win)
             snake.move()
 
-            #active_genomes[x].fitness = snake.score
             active_genomes[x].fitness += 0.1
-            outputs = active_nets[x].activate((snake.position[0][0], snake.position[0][1]))
-            snake.direction = outputs.index(max(outputs))
+
+            inputs = []
+            for i in range(-1, 2):
+                direction = (snake.direction + i) % 4
+                next_snake_pos = snake.pos.copy()
+                next_snake_pos.insert(0, (next_unit(next_snake_pos, direction)))
+                next_snake_pos.pop()
+                if dead(next_snake_pos):
+                    inputs.append(0)
+                else:
+                    inputs.append(1)
+
+            outputs = active_nets[x].activate(inputs)
+            snake.direction = (snake.direction + (outputs.index(max(outputs)) - 1)) % 4
 
         pygame.display.update()
 
