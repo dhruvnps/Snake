@@ -4,10 +4,10 @@ import os
 import random
 import math
 
-WIDTH, HEIGHT = 40, 40
-SCALE = 17
+WIDTH, HEIGHT = 15, 15
+SCALE = 45
 SPEED = math.inf
-MAX_TIME = 200
+MAX_TIME = 100
 
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
 
@@ -15,6 +15,9 @@ GREEN = (70, 215, 40)
 BLACK = (30, 30, 30)
 RED = (220, 0, 27)
 WHITE = (200, 200, 200)
+
+WALL = 0
+SNAKE = 1
 
 
 class Snake:
@@ -48,8 +51,7 @@ class Apple:
         self.y = random.randint(0, HEIGHT - 1)
 
     def collide(self, snake):
-        if self.x == snake.pos[0][0] and self.y == snake.pos[0][1]:
-            return True
+        return (self.x, self.y) in snake.pos
 
     def draw(self, win):
         pygame.draw.rect(win, RED, (self.x * SCALE, self.y * SCALE, SCALE, SCALE))
@@ -68,10 +70,9 @@ def next_unit(pos, direction):
 
 def dead(pos):
     if not(0 <= pos[0][0] < WIDTH and 0 <= pos[0][1] < HEIGHT):
-        return True
-    # checks if snake has overlapped onto itself
+        return WALL
     if sorted(list(set(pos))) != sorted(pos):
-        return True
+        return SNAKE
 
 
 def main(genomes, config):
@@ -103,7 +104,7 @@ def main(genomes, config):
             for (x, snake) in enumerate(snakes):
                 snake.draw(win)
 
-                if dead(snake.pos) or snake.timer > MAX_TIME:
+                if dead(snake.pos) is not None or snake.timer > MAX_TIME:
                     snakes.pop(x)
                     active_genomes.pop(x)
                     active_nets.pop(x)
@@ -122,20 +123,18 @@ def main(genomes, config):
                 next_snake_pos = snake.pos.copy()
                 next_snake_pos.insert(0, (next_unit(next_snake_pos, direction)))
                 next_snake_pos.pop()
-                if dead(next_snake_pos):
-                    inputs.append(0)
-                else:
-                    inputs.append(1)
+                inputs.append(dead(next_snake_pos) == WALL)
+                inputs.append(dead(next_snake_pos) == SNAKE)
 
             apple_view = []
             if snake.pos[0][0] == snake.apple.x and snake.pos[0][1] > snake.apple.y:
-                apple_view.append(0)
+                apple_view.append(UP)
             if snake.pos[0][1] == snake.apple.y and snake.pos[0][0] < snake.apple.y:
-                apple_view.append(1)
+                apple_view.append(RIGHT)
             if snake.pos[0][0] == snake.apple.x and snake.pos[0][1] < snake.apple.x:
-                apple_view.append(2)
+                apple_view.append(DOWN)
             if snake.pos[0][1] == snake.apple.y and snake.pos[0][0] > snake.apple.x:
-                apple_view.append(3)
+                apple_view.append(LEFT)
             apple_view = [(i in apple_view) for i in range(4)]
 
             if snake.direction == UP:
