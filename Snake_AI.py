@@ -3,15 +3,15 @@ import neat
 import os
 import random
 
-WIDTH, HEIGHT = 150, 150
-SCALE = 4
+WIDTH, HEIGHT = 40, 40
+SCALE = 16
 SPEED = 10
-MAX_TIME = 1000
+MAX_TIME = 200
 
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
 
 GREEN = (70, 215, 40)
-BLACK = (20, 20, 20)
+BLACK = (30, 30, 30)
 RED = (220, 0, 27)
 WHITE = (200, 200, 200)
 
