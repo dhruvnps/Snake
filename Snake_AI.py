@@ -3,8 +3,8 @@ import neat
 import os
 import random
 
-WIDTH, HEIGHT = 40, 40
-SCALE = 16
+WIDTH, HEIGHT = 20, 20
+SCALE = 32
 SPEED = 10
 MAX_TIME = 200
 
@@ -143,7 +143,7 @@ def main(genomes, config):
                 inputs.extend(apple_view[2:] + apple_view[:2])
             if direction == LEFT:
                 inputs.extend(apple_view[3:] + apple_view[:3])
-
+                
             outputs = active_nets[x].activate(inputs)
             snake.direction = (snake.direction + (outputs.index(max(outputs)) - 1)) % 4
 
