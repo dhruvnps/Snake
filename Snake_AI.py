@@ -36,7 +36,6 @@ class Snake:
             while self.apple.collide(self):
                 self.apple = Apple()
             self.score += 1
-            #print(self.score)
         else:
             self.position.pop()
 
@@ -103,15 +102,7 @@ def main(genomes, config):
 
             #active_genomes[x].fitness = snake.score
             active_genomes[x].fitness += 0.1
-            outputs = active_nets[x].activate((snake.position[0][0] - WIDTH,
-                                               snake.position[0][1] - HEIGHT,
-                                               snake.position[0][0],
-                                               snake.position[0][1],
-                                               snake.direction == UP,
-                                               snake.direction == RIGHT,
-                                               snake.direction == DOWN,
-                                               snake.direction == LEFT))
-
+            outputs = active_nets[x].activate((snake.position[0][0], snake.position[0][1]))
             snake.direction = outputs.index(max(outputs))
 
         pygame.display.update()
