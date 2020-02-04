@@ -7,12 +7,12 @@ import math
 WIDTH, HEIGHT = 10, 10
 SCALE = 68
 SPEED = math.inf
-MAX_TIME = 50
+MAX_TIME = 100
 
 UP, RIGHT, DOWN, LEFT = 0, 1, 2, 3
 
 GREEN = (70, 215, 40)
-PALE_GREEN = ((70+30)/5, (215+30)/5, (40+30)/5)
+PALE_GREEN = ((70 + 30) / 5, (215 + 30) / 5, (40 + 30) / 5)
 BLACK = (30, 30, 30)
 RED = (220, 0, 27)
 WHITE = (200, 200, 200)
@@ -36,7 +36,7 @@ class Snake:
             while self.apple.collide(self):
                 self.apple = Apple()
             self.score += 1
-            self.timer = -self.score*10
+            self.timer = -self.score * 10
         else:
             self.pos.pop()
 
@@ -75,6 +75,40 @@ def dead(pos):
         return WALL
     if sorted(list(set(pos))) != sorted(pos):
         return SNAKE
+
+
+def inputs(snake):
+    # adds fate of snake after one frame to inputs
+    inputs = []
+    for direction_change in [-1, 0, 1]:
+        direction = (snake.direction + direction_change) % 4
+        next_snake_pos = snake.pos.copy()
+        next_snake_pos.insert(0, (next_unit(next_snake_pos, direction)))
+        next_snake_pos.pop()
+        fate = dead(next_snake_pos)
+        inputs.extend([fate == WALL, fate == SNAKE])
+
+    # adds distance between snake head and tail to inputs
+    dx = snake.pos[0][0] - snake.pos[-1][0]
+    dy = snake.pos[0][1] - snake.pos[-1][1]
+    inputs.append(math.hypot(dx, dy))
+
+    # adds whether or not an apple is in that direction to apple view
+    apple_view = []
+    if snake.pos[0][0] == snake.apple.x and snake.pos[0][1] > snake.apple.y:
+        apple_view.append(UP)
+    if snake.pos[0][1] == snake.apple.y and snake.pos[0][0] < snake.apple.y:
+        apple_view.append(RIGHT)
+    if snake.pos[0][0] == snake.apple.x and snake.pos[0][1] < snake.apple.x:
+        apple_view.append(DOWN)
+    if snake.pos[0][1] == snake.apple.y and snake.pos[0][0] > snake.apple.x:
+        apple_view.append(LEFT)
+    apple_view = [(direction in apple_view) for direction in range(4)]
+
+    # orientates the apple view to the direction the snake is facing and adds to inputs
+    inputs.extend(apple_view[snake.direction:] + apple_view[:snake.direction])
+
+    return inputs
 
 
 def main(genomes, config):
@@ -122,37 +156,7 @@ def main(genomes, config):
             active_genomes[x].fitness = snake.score
             snake.timer += 1
 
-            # adds fate of snake after one frame to inputs
-            inputs = []
-            for direction_change in [-1, 0, 1]:
-                direction = (snake.direction + direction_change) % 4
-                next_snake_pos = snake.pos.copy()
-                next_snake_pos.insert(0, (next_unit(next_snake_pos, direction)))
-                next_snake_pos.pop()
-                inputs.append(dead(next_snake_pos) == WALL)
-                inputs.append(dead(next_snake_pos) == SNAKE)
-
-            # adds distance between snake head and tail to inputs
-            dx = snake.pos[0][0] - snake.pos[-1][0]
-            dy = snake.pos[0][1] - snake.pos[-1][1]
-            inputs.append(math.hypot(dx, dy))
-
-            # adds whether or not an apple is in that direction to apple view
-            apple_view = []
-            if snake.pos[0][0] == snake.apple.x and snake.pos[0][1] > snake.apple.y:
-                apple_view.append(UP)
-            if snake.pos[0][1] == snake.apple.y and snake.pos[0][0] < snake.apple.y:
-                apple_view.append(RIGHT)
-            if snake.pos[0][0] == snake.apple.x and snake.pos[0][1] < snake.apple.x:
-                apple_view.append(DOWN)
-            if snake.pos[0][1] == snake.apple.y and snake.pos[0][0] > snake.apple.x:
-                apple_view.append(LEFT)
-            apple_view = [(direction in apple_view) for direction in range(4)]
-
-            # orientates the apple view to the direction the snake is facing and adds to inputs
-            inputs.extend(apple_view[snake.direction:] + apple_view[:snake.direction])
-
-            outputs = active_nets[x].activate(inputs)
+            outputs = active_nets[x].activate(inputs(snake))
             snake.direction = (snake.direction + (outputs.index(max(outputs)) - 1)) % 4
 
         pygame.display.update()
@@ -165,7 +169,7 @@ def run(config_file):
     p = neat.Population(config)
     p.add_reporter(neat.StdOutReporter(True))
     p.add_reporter(neat.StatisticsReporter())
-    winner = p.run(main, 50)
+    winner = p.run(main)
 
     print('\nBest genome:\n{!s}'.format(winner))
 
