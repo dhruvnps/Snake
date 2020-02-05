@@ -8,8 +8,7 @@ WIDTH, HEIGHT = 10, 10
 SCALE = 68
 SPEED = math.inf
 MAX_TIME = WIDTH * HEIGHT
-
-UP, RIGHT, DOWN, LEFT = list(range(4))
+GAP = 1
 
 GREEN = (70, 215, 40)
 PALE_GREEN = (20, 49, 14)
@@ -17,8 +16,8 @@ BLACK = (30, 30, 30)
 RED = (220, 0, 27)
 WHITE = (200, 200, 200)
 
-WALL = 0
-SNAKE = 1
+WALL, SNAKE = 0, 1
+UP, RIGHT, DOWN, LEFT = list(range(4))
 
 
 class Snake:
@@ -44,7 +43,8 @@ class Snake:
         if color == GREEN:
             self.apple.draw(win)
         for unit in self.pos:
-            pygame.draw.rect(win, color, (unit[0] * SCALE, unit[1] * SCALE, SCALE, SCALE))
+            rect = (unit[0] * SCALE + GAP / 2, unit[1] * SCALE + GAP / 2, SCALE - GAP, SCALE - GAP)
+            pygame.draw.rect(win, color, rect)
 
 
 class Apple:
@@ -56,7 +56,8 @@ class Apple:
         return (self.x, self.y) in snake.pos
 
     def draw(self, win):
-        pygame.draw.rect(win, RED, (self.x * SCALE, self.y * SCALE, SCALE, SCALE))
+        rect = (self.x * SCALE + GAP / 2, self.y * SCALE + GAP / 2, SCALE - GAP, SCALE - GAP)
+        pygame.draw.rect(win, RED, rect)
 
 
 def next_unit(pos, direction):
@@ -81,7 +82,7 @@ def inputs(snake):
     inputs = []
     points = [None] * 4
     x, y = snake.pos[0][0], snake.pos[0][1]
-    points[UP]  = [(x, y - i) for i in range(y + 1)]
+    points[UP] = [(x, y - i) for i in range(y + 1)]
     points[RIGHT] = [(x + i, y) for i in range(WIDTH - x)]
     points[DOWN] = [(x, y + i) for i in range(HEIGHT - y)]
     points[LEFT] = [(x - i, y) for i in range(x + 1)]
