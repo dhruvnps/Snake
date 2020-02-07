@@ -4,11 +4,11 @@ import os
 import random
 import math
 
-WIDTH, HEIGHT = 10, 10
-SCALE = 68
+WIDTH, HEIGHT = 5, 5
+SCALE = 136
 SPEED = math.inf
 MAX_TIME = WIDTH * HEIGHT
-GAP = 1
+GAP = 2
 
 GREEN = (70, 215, 40)
 PALE_GREEN = (20, 49, 14)
@@ -86,19 +86,14 @@ def inputs(snake):
     points[RIGHT] = [(x + i, y) for i in range(WIDTH - x)]
     points[DOWN] = [(x, y + i) for i in range(HEIGHT - y)]
     points[LEFT] = [(x - i, y) for i in range(x + 1)]
-
+    
     # adds fate of snake after one frame
     for direction_change in [-1, 0, 1]:
         direction = (snake.direction + direction_change) % 4
-        next_snake_pos = snake.pos.copy()
         next_snake_pos.insert(0, (next_unit(next_snake_pos, direction)))
         next_snake_pos.pop()
         fate = dead(next_snake_pos)
         inputs.extend([fate == WALL, fate == SNAKE])
-
-    # adds distance between snake head and tail
-    dx, dy = x - snake.pos[-1][0], y - snake.pos[-1][1]
-    inputs.append(math.hypot(dx, dy))
 
     # adds whether the apple is in given direction
     apple_view = [(snake.apple.x, snake.apple.y) in direction for direction in points]
@@ -107,6 +102,10 @@ def inputs(snake):
     # adds whether part of the snake is in given direction
     self_view = [bool(set(snake.pos[1:]) & set(direction)) for direction in points]
     inputs.extend(self_view[snake.direction:] + self_view[:snake.direction])
+
+    # adds distance from each of the 4 walls
+    walls_view = [len(points[direction]) for direction in [UP, RIGHT, DOWN, LEFT]]
+    inputs.extend(walls_view[snake.direction:] + walls_view[:snake.direction])
 
     return inputs
 
