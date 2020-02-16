@@ -4,9 +4,9 @@ import os
 import random
 import math
 
-WIDTH, HEIGHT = 5, 5
-SCALE = 136
-SPEED = math.inf
+WIDTH, HEIGHT = 20, 20
+SCALE = 42
+SPEED = 20
 MAX_TIME = WIDTH * HEIGHT
 GAP = 2
 
