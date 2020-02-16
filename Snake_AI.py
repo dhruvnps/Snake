@@ -86,10 +86,11 @@ def inputs(snake):
     points[RIGHT] = [(x + i, y) for i in range(WIDTH - x)]
     points[DOWN] = [(x, y + i) for i in range(HEIGHT - y)]
     points[LEFT] = [(x - i, y) for i in range(x + 1)]
-    
+
     # adds fate of snake after one frame
     for direction_change in [-1, 0, 1]:
         direction = (snake.direction + direction_change) % 4
+        next_snake_pos = snake.pos.copy()
         next_snake_pos.insert(0, (next_unit(next_snake_pos, direction)))
         next_snake_pos.pop()
         fate = dead(next_snake_pos)
