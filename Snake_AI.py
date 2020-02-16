@@ -5,10 +5,12 @@ import random
 import math
 
 WIDTH, HEIGHT = 20, 20
-SCALE = 42
-SPEED = 20
-MAX_TIME = WIDTH * HEIGHT
+SCALE = 34
 GAP = 2
+SPEED = math.inf
+MAX_TIME = WIDTH * HEIGHT
+IDIOT_MAX_TIME = MAX_TIME / 10
+IDIOT_THRESHOLD = 3
 
 GREEN = (70, 215, 40)
 PALE_GREEN = (20, 49, 14)
@@ -38,6 +40,9 @@ class Snake:
             self.timer = 0
         else:
             self.pos.pop()
+
+    def idiot(self):
+        return self.score < IDIOT_THRESHOLD
 
     def draw(self, win, color):
         if color == GREEN:
@@ -139,13 +144,14 @@ def main(genomes, config):
             best_snake = sorted(snakes, key=lambda x: x.score)[-1]
 
             for (x, snake) in enumerate(snakes):
-                if dead(snake.pos) is not None or (snake.timer > MAX_TIME):
+                max_time = IDIOT_MAX_TIME if snake.idiot() else MAX_TIME
+                if dead(snake.pos) is not None or (snake.timer > max_time):
                     snakes.pop(x)
                     active_genomes.pop(x)
                     active_nets.pop(x)
                 snake.draw(win, PALE_GREEN)
 
-            if best_snake.score > 2:
+            if not best_snake.idiot():
                 best_snake.draw(win, GREEN)
 
         # if all snakes are dead
